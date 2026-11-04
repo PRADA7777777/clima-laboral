@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico de Rotación · ICM</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#eef2f7,#e3ecf5);min-height:100vh;padding:20px;color:#1a1a1a}
+  .container{max-width:680px;margin:0 auto}
+  header{text-align:center;margin-bottom:24px}
+  header h1{font-size:26px;color:#1a5276;margin-bottom:6px}
+  header .sub{color:#f57c00;font-weight:600;font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+  .intro{background:#fff;border-left:4px solid #1a5276;padding:16px 20px;border-radius:8px;margin:20px 0;font-size:14px;line-height:1.5;color:#444;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  form{display:flex;flex-direction:column;gap:16px}
+  .bloque{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .bloque h2{font-size:14px;color:#1a5276;text-transform:uppercase;letter-spacing:.5px;padding-bottom:10px;margin-bottom:16px;border-bottom:2px solid #f0f0f0}
+  .pregunta{margin-bottom:20px}
+  .pregunta:last-child{margin-bottom:0}
+  .pregunta label.q{display:block;font-weight:600;font-size:14px;margin-bottom:12px;line-height:1.4}
+  .opciones{display:flex;flex-direction:column;gap:8px}
+  .opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #e5e5e5;border-radius:8px;cursor:pointer;transition:all .15s;font-size:14px}
+  .opcion:hover{border-color:#1a5276;background:#f8fbfe}
+  .opcion input{accent-color:#1a5276;width:18px;height:18px}
+  .opcion input:checked + span{color:#1a5276;font-weight:600}
+  .opcion:has(input:checked){border-color:#1a5276;background:#e8f2fa}
+  button{background:#1a5276;color:#fff;border:none;padding:16px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:8px}
+  button:hover{background:#0f3956}
+  button:disabled{background:#999;cursor:not-allowed}
+  #gracias{display:none;text-align:center;background:#fff;padding:60px 30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  #gracias h2{color:#388e3c;margin-bottom:12px;font-size:24px}
+  #gracias p{color:#666;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Diagnóstico de Rotación</h1>
+    <div class="sub">Baños y Peluquería · ICM</div>
+  </header>
+
+  <div class="intro">
+    El área de Talento Humano está realizando esta encuesta reglamentaria para
+    identificar oportunidades de mejora. <strong>Sus respuestas son 100% anónimas.</strong>
+    Tiempo estimado: 3 minutos.
+  </div>
+
+  <form id="form"></form>
+
+  <div id="gracias">
+    <h2>✅ ¡Gracias por tu respuesta!</h2>
+    <p>Tu opinión ayuda a mejorar el ambiente laboral en ICM.<br>Puedes cerrar esta ventana.</p>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+const PREGUNTAS = [
+  { bloque: 'Satisfacción General y Clima', preguntas: [
+    { q: '1. En general, ¿qué tan satisfecho(a) se siente trabajando en el área de baños y peluquería de ICM?',
+      o: ['Muy satisfecho(a)','Satisfecho(a)','Poco satisfecho(a)','Nada satisfecho(a)'] },
+    { q: '2. ¿Cómo califica el ambiente laboral y la relación con sus compañeros de trabajo?',
+      o: ['Excelente','Bueno','Regular','Malo'] }
+  ]},
+  { bloque: 'Remuneración', preguntas: [
+    { q: '3. ¿Considera que su salario actual está acorde con las funciones y el esfuerzo físico que realiza?',
+      o: ['Totalmente de acuerdo','De acuerdo','En desacuerdo','Totalmente en desacuerdo'] },
+    { q: '4. ¿Siente que sus pagos y beneficios se realizan de manera puntual y clara?',
+      o: ['Siempre','Casi siempre','Casi nunca','Nunca'] }
+  ]},
+  { bloque: 'Condiciones de Trabajo', preguntas: [
+    { q: '5. ¿Cuenta con las herramientas, insumos y espacios adecuados para realizar su labor de forma segura?',
+      o: ['Siempre','A veces','Casi nunca','Nunca'] },
+    { q: '6. ¿Considera que su horario y carga laboral le permiten tener un equilibrio con su vida personal?',
+      o: ['Sí, totalmente','A veces','No, casi nunca','No, definitivamente no'] }
+  ]},
+  { bloque: 'Relación con Superiores', preguntas: [
+    { q: '7. ¿Cómo califica la comunicación y el apoyo que recibe por parte de su jefe o superior inmediato?',
+      o: ['Excelente','Bueno','Regular','Deficiente'] },
+    { q: '8. Cuando comete un error o tiene una dificultad en el trabajo, ¿siente el respaldo de sus superiores?',
+      o: ['Siempre','A veces','Rara vez','Nunca'] }
+  ]},
+  { bloque: 'Intención de Deserción', preguntas: [
+    { q: '9. En los últimos 3 meses, ¿ha considerado la idea de renunciar a su trabajo en ICM?',
+      o: ['No, nunca','Lo he pensado ocasionalmente','Lo he pensado seriamente','Sí, ya estoy buscando otro empleo'] },
+    { q: '10. Si en este momento tuviera que tomar la decisión de renunciar, ¿cuál sería el principal motivo?',
+      o: ['Bajos ingresos (sueldo)','Mal ambiente laboral o problemas con compañeros','Malas condiciones físicas o de horario','Problemas o falta de respeto con los superiores','Motivos personales / Otra oferta laboral'] }
+  ]}
+];
+
+// Renderizar formulario
+const form = document.getElementById('form');
+let idx = 1;
+PREGUNTAS.forEach(bloque => {
+  const div = document.createElement('div');
+  div.className = 'bloque';
+  let html = '<h2>' + bloque.bloque + '</h2>';
+  bloque.preguntas.forEach(p => {
+    const n = idx++;
+    html += '<div class="pregunta"><label class="q">' + p.q + '</label><div class="opciones">';
+    p.o.forEach(op => {
+      html += '<label class="opcion"><input type="radio" name="p' + n + '" value="' +
+              op.replace(/"/g,'&quot;') + '" required><span>' + op + '</span></label>';
+    });
+    html += '</div></div>';
+  });
+  div.innerHTML = html;
+  form.appendChild(div);
+});
+
+const btn = document.createElement('button');
+btn.type = 'submit';
+btn.textContent = 'Enviar respuestas';
+form.appendChild(btn);
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const respuestas = [];
+  for (let i = 1; i <= 10; i++) {
+    const checked = form.querySelector('input[name="p' + i + '"]:checked');
+    if (!checked) { alert('Por favor responde la pregunta ' + i); return; }
+    respuestas.push(checked.value);
+  }
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ respuestas })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error del servidor');
+    form.style.display = 'none';
+    document.getElementById('gracias').style.display = 'block';
+  } catch (err) {
+    alert('No se pudo enviar: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Enviar respuestas';
+  }
+});
+</script>
+</body>
+</html>
