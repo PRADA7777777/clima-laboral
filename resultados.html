@@ -82,6 +82,9 @@
       100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
     }
 
+    /* Cabecera exclusiva para impresión (oculta en pantalla) */
+    .print-only { display: none; }
+
     /* ============ TARJETAS KPI ============ */
     .kpi-grid {
       display: grid;
@@ -224,6 +227,8 @@
     }
     .btn-export:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .btn-export:active { transform: translateY(0); }
+    .btn-print { background: #334155; }
+    .btn-print:hover { background: #1e293b; }
 
     .table-scroll {
       overflow-x: auto;
@@ -325,12 +330,112 @@
       .search-input { min-width: 0; width: 100%; }
       .table-actions { flex-wrap: wrap; }
     }
+
+    /* ============================================================
+       ESTILOS DE IMPRESIÓN / PDF
+       ============================================================ */
+    @media print {
+      /* Tamaño de hoja y márgenes */
+      @page { size: A4 landscape; margin: 12mm; }
+
+      body {
+        padding: 0;
+        background: #fff;
+        font-size: 11px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Oculta lo que no va en el informe */
+      .dash-header .meta-badge,
+      .table-actions,
+      .table-footer,
+      .dash-footer,
+      .btn-export,
+      .search-input { display: none !important; }
+
+      /* Muestra la cabecera de impresión */
+      .print-only { display: block; }
+      .print-header {
+        margin-bottom: 14px;
+        border-bottom: 2px solid #0f766e;
+        padding-bottom: 8px;
+      }
+      .print-header h1 { font-size: 18px; color: #0f766e; }
+      .print-header p { font-size: 11px; color: #475569; margin-top: 2px; }
+
+      /* Evita sombras y bordes redondeados en papel */
+      .kpi-card, .chart-card, .table-card {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Tarjetas KPI en una sola fila compacta */
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .kpi-card { padding: 10px 12px; }
+      .kpi-value { font-size: 20px; }
+      .kpi-label { font-size: 9px; }
+      .kpi-foot { font-size: 9px; }
+
+      /* Gráficos lado a lado */
+      .charts-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .chart-card { padding: 10px; }
+      .chart-card h3 {
+        font-size: 11px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+      }
+      .chart-wrapper { min-height: 200px; height: 200px; }
+
+      /* Tabla: sin scroll, con cabecera repetida en cada página */
+      .table-card { break-inside: auto; }
+      .table-header { padding: 10px 12px; }
+      .table-header h3 { font-size: 11px; }
+      .table-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      table { font-size: 8.5px; }
+      thead { position: static; }
+      thead th {
+        background: #0f766e !important;
+        color: #fff !important;
+        padding: 5px 6px;
+        font-size: 8px;
+        border-bottom: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      thead th .sort-icon { display: none; }
+      tbody td { padding: 4px 6px; max-width: none; }
+      tbody tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .tag {
+        padding: 2px 6px;
+        font-size: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="dashboard">
 
-    <!-- ===== CABECERA ===== -->
+    <!-- ===== CABECERA VISIBLE EN PANTALLA ===== -->
     <header class="dash-header">
       <div>
         <h1>Resultados de la Encuesta de Clima Laboral</h1>
@@ -341,6 +446,12 @@
         Datos simulados · Actualizado: <span id="data-date"></span>
       </div>
     </header>
+
+    <!-- ===== CABECERA EXCLUSIVA PARA EL PDF ===== -->
+    <div class="print-only print-header">
+      <h1>Informe de Clima Laboral · ICM</h1>
+      <p>Área de Baños y Peluquería · 59 respuestas · Generado el <span id="print-date"></span></p>
+    </div>
 
     <!-- ===== TARJETAS KPI ===== -->
     <section class="kpi-grid">
@@ -389,6 +500,7 @@
         <div class="table-actions">
           <input type="search" id="tableSearch" class="search-input" placeholder="Buscar en la tabla...">
           <button class="btn-export" id="exportBtn">Exportar CSV</button>
+          <button class="btn-export btn-print" id="printBtn">📄 Informe PDF</button>
         </div>
       </div>
       <div class="table-scroll">
@@ -429,12 +541,8 @@
     /* ============================================================
        1. DATOS SIMULADOS (59 registros con distribuciones realistas)
        ============================================================ */
-    const RAW_DATA = [
-      // Se generan 59 registros con lógica de pesos para que los gráficos sean creíbles.
-      // Cada registro es un objeto con las claves p1...p10.
-    ];
+    const RAW_DATA = [];
 
-    // Función auxiliar para generar respuestas con pesos
     function weightedChoice(options, weights) {
       const total = weights.reduce((a, b) => a + b, 0);
       let r = Math.random() * total;
@@ -445,38 +553,36 @@
       return options[options.length - 1];
     }
 
-    // Opciones por pregunta
-    const P1_OPTS = ["Muy satisfecho(a)", "Satisfecho(a)", "Poco satisfecho(a)", "Nada satisfecho(a)"];
-    const P1_W    = [15, 25, 12, 7]; // pesos para 59 respuestas
+    const P1_OPTS  = ["Muy satisfecho(a)", "Satisfecho(a)", "Poco satisfecho(a)", "Nada satisfecho(a)"];
+    const P1_W     = [15, 25, 12, 7];
 
-    const P2_OPTS = ["Excelente", "Bueno", "Regular", "Malo"];
-    const P2_W    = [10, 28, 15, 6];
+    const P2_OPTS  = ["Excelente", "Bueno", "Regular", "Malo"];
+    const P2_W     = [10, 28, 15, 6];
 
-    const P3_OPTS = ["Totalmente de acuerdo", "De acuerdo", "En desacuerdo", "Totalmente en desacuerdo"];
-    const P3_W    = [8, 20, 20, 11];
+    const P3_OPTS  = ["Totalmente de acuerdo", "De acuerdo", "En desacuerdo", "Totalmente en desacuerdo"];
+    const P3_W     = [8, 20, 20, 11];
 
-    const P4_OPTS = ["Siempre", "Casi siempre", "Casi nunca", "Nunca"];
-    const P4_W    = [30, 20, 6, 3];
+    const P4_OPTS  = ["Siempre", "Casi siempre", "Casi nunca", "Nunca"];
+    const P4_W     = [30, 20, 6, 3];
 
-    const P5_OPTS = ["Siempre", "A veces", "Casi nunca", "Nunca"];
-    const P5_W    = [25, 22, 8, 4];
+    const P5_OPTS  = ["Siempre", "A veces", "Casi nunca", "Nunca"];
+    const P5_W     = [25, 22, 8, 4];
 
-    const P6_OPTS = ["Sí, totalmente", "A veces", "No, casi nunca", "No, definitivamente no"];
-    const P6_W    = [18, 25, 10, 6];
+    const P6_OPTS  = ["Sí, totalmente", "A veces", "No, casi nunca", "No, definitivamente no"];
+    const P6_W     = [18, 25, 10, 6];
 
-    const P7_OPTS = ["Excelente", "Bueno", "Regular", "Deficiente"];
-    const P7_W    = [9, 26, 17, 7];
+    const P7_OPTS  = ["Excelente", "Bueno", "Regular", "Deficiente"];
+    const P7_W     = [9, 26, 17, 7];
 
-    const P8_OPTS = ["Siempre", "A veces", "Rara vez", "Nunca"];
-    const P8_W    = [22, 25, 8, 4];
+    const P8_OPTS  = ["Siempre", "A veces", "Rara vez", "Nunca"];
+    const P8_W     = [22, 25, 8, 4];
 
-    const P9_OPTS = ["No, nunca", "Lo he pensado ocasionalmente", "Lo he pensado seriamente", "Sí, ya estoy buscando otro empleo"];
-    const P9_W    = [30, 16, 9, 4];
+    const P9_OPTS  = ["No, nunca", "Lo he pensado ocasionalmente", "Lo he pensado seriamente", "Sí, ya estoy buscando otro empleo"];
+    const P9_W     = [30, 16, 9, 4];
 
     const P10_OPTS = ["Bajos ingresos (sueldo)", "Mal ambiente laboral o problemas con compañeros", "Malas condiciones físicas o de horario", "Problemas o falta de respeto con los superiores", "Motivos personales / Otra oferta laboral"];
     const P10_W    = [18, 10, 12, 8, 11];
 
-    // Generar 59 registros
     for (let i = 1; i <= 59; i++) {
       RAW_DATA.push({
         id: i,
@@ -498,13 +604,18 @@
        ============================================================ */
     const COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#f59e0b', '#ef4444'];
 
-    // Función para asignar una clase de color a cada opción (para la tabla)
     function tagClass(text) {
       const t = text.toLowerCase();
-      if (t.includes('muy satisfecho') || t.includes('excelente') || t.includes('siempre') || t.includes('totalmente de acuerdo') || t.includes('sí, totalmente') || t.includes('no, nunca')) return 'tag-green';
-      if (t.includes('satisfecho') || t.includes('bueno') || t.includes('casi siempre') || t.includes('de acuerdo')) return 'tag-teal';
-      if (t.includes('poco') || t.includes('regular') || t.includes('a veces') || t.includes('ocasionalmente') || t.includes('en desacuerdo')) return 'tag-amber';
-      if (t.includes('nada') || t.includes('malo') || t.includes('nunca') || t.includes('casi nunca') || t.includes('deficiente') || t.includes('seriamente') || t.includes('buscando')) return 'tag-red';
+      if (t.includes('muy satisfecho') || t.includes('excelente') || t.includes('siempre') ||
+          t.includes('totalmente de acuerdo') || t.includes('sí, totalmente') ||
+          t.includes('no, nunca')) return 'tag-green';
+      if (t.includes('satisfecho') || t.includes('bueno') || t.includes('casi siempre') ||
+          t.includes('de acuerdo')) return 'tag-teal';
+      if (t.includes('poco') || t.includes('regular') || t.includes('a veces') ||
+          t.includes('ocasionalmente') || t.includes('en desacuerdo')) return 'tag-amber';
+      if (t.includes('nada') || t.includes('malo') || t.includes('nunca') ||
+          t.includes('casi nunca') || t.includes('deficiente') || t.includes('seriamente') ||
+          t.includes('buscando')) return 'tag-red';
       return 'tag-gray';
     }
 
@@ -539,7 +650,6 @@
       visibleRowsSpan.textContent = data.length;
     }
 
-    // Ordenación
     function sortTable(key) {
       if (sortKey === key) {
         sortAsc = !sortAsc;
@@ -559,36 +669,27 @@
       renderTable(sorted);
     }
 
-    // Eventos de ordenación
     document.querySelectorAll('thead th').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.key;
-        sortTable(key);
-      });
+      th.addEventListener('click', () => sortTable(th.dataset.key));
     });
 
-    // Búsqueda
     document.getElementById('tableSearch').addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase().trim();
       if (!query) {
         currentData = [...RAW_DATA];
       } else {
-        currentData = RAW_DATA.filter(row => {
-          return Object.values(row).some(val =>
-            String(val).toLowerCase().includes(query)
-          );
-        });
+        currentData = RAW_DATA.filter(row =>
+          Object.values(row).some(val => String(val).toLowerCase().includes(query))
+        );
       }
       renderTable(currentData);
     });
 
-    // Render inicial
     renderTable(currentData);
 
     /* ============================================================
        4. GRÁFICOS CON CHART.JS
        ============================================================ */
-    // Contar frecuencias para P1
     function countFreq(data, key, options) {
       const counts = {};
       options.forEach(opt => counts[opt] = 0);
@@ -598,10 +699,9 @@
       return counts;
     }
 
-    // Gráfico P1 (Doughnut)
     const p1Counts = countFreq(RAW_DATA, 'p1', P1_OPTS);
     const p1Labels = Object.keys(p1Counts);
-    const p1Data = Object.values(p1Counts);
+    const p1Data   = Object.values(p1Counts);
 
     new Chart(document.getElementById('chartP1'), {
       type: 'doughnut',
@@ -617,6 +717,8 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        devicePixelRatio: 3,
+        animation: false,
         cutout: '60%',
         plugins: {
           legend: {
@@ -625,7 +727,7 @@
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                 const pct = ((context.parsed / total) * 100).toFixed(1);
                 return `${context.label}: ${context.parsed} (${pct}%)`;
@@ -636,10 +738,9 @@
       }
     });
 
-    // Gráfico P10 (Barras horizontales)
     const p10Counts = countFreq(RAW_DATA, 'p10', P10_OPTS);
     const p10Labels = Object.keys(p10Counts);
-    const p10Data = Object.values(p10Counts);
+    const p10Data   = Object.values(p10Counts);
 
     new Chart(document.getElementById('chartP10'), {
       type: 'bar',
@@ -658,11 +759,13 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        devicePixelRatio: 3,
+        animation: false,
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 return `${context.parsed.x} respuestas`;
               }
             }
@@ -697,10 +800,18 @@
     });
 
     /* ============================================================
-       6. FECHA DE ACTUALIZACIÓN
+       6. IMPRIMIR / GUARDAR COMO PDF
        ============================================================ */
-    const fecha = new Date();
-    document.getElementById('data-date').textContent = fecha.toLocaleDateString('es-ES', {
+    document.getElementById('printBtn').addEventListener('click', () => {
+      document.getElementById('print-date').textContent =
+        new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+      window.print();
+    });
+
+    /* ============================================================
+       7. FECHA DE ACTUALIZACIÓN
+       ============================================================ */
+    document.getElementById('data-date').textContent = new Date().toLocaleDateString('es-ES', {
       year: 'numeric', month: 'long', day: 'numeric'
     });
   </script>
