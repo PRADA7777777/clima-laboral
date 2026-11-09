@@ -3,142 +3,721 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diagnóstico de Rotación · ICM</title>
+<title>Encuesta de Satisfacción Laboral | ICM</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#eef2f7,#e3ecf5);min-height:100vh;padding:20px;color:#1a1a1a}
-  .container{max-width:680px;margin:0 auto}
-  header{text-align:center;margin-bottom:24px}
-  header h1{font-size:26px;color:#1a5276;margin-bottom:6px}
-  header .sub{color:#f57c00;font-weight:600;font-size:14px;letter-spacing:.5px;text-transform:uppercase}
-  .intro{background:#fff;border-left:4px solid #1a5276;padding:16px 20px;border-radius:8px;margin:20px 0;font-size:14px;line-height:1.5;color:#444;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-  form{display:flex;flex-direction:column;gap:16px}
-  .bloque{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  .bloque h2{font-size:14px;color:#1a5276;text-transform:uppercase;letter-spacing:.5px;padding-bottom:10px;margin-bottom:16px;border-bottom:2px solid #f0f0f0}
-  .pregunta{margin-bottom:20px}
-  .pregunta:last-child{margin-bottom:0}
-  .pregunta label.q{display:block;font-weight:600;font-size:14px;margin-bottom:12px;line-height:1.4}
-  .opciones{display:flex;flex-direction:column;gap:8px}
-  .opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #e5e5e5;border-radius:8px;cursor:pointer;transition:all .15s;font-size:14px}
-  .opcion:hover{border-color:#1a5276;background:#f8fbfe}
-  .opcion input{accent-color:#1a5276;width:18px;height:18px}
-  .opcion input:checked + span{color:#1a5276;font-weight:600}
-  .opcion:has(input:checked){border-color:#1a5276;background:#e8f2fa}
-  button{background:#1a5276;color:#fff;border:none;padding:16px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:8px}
-  button:hover{background:#0f3956}
-  button:disabled{background:#999;cursor:not-allowed}
-  #gracias{display:none;text-align:center;background:#fff;padding:60px 30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  #gracias h2{color:#388e3c;margin-bottom:12px;font-size:24px}
-  #gracias p{color:#666;line-height:1.6}
+  /* ============ BASE ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root{
+    --primary:       #0f766e;
+    --primary-dark:  #0b5f59;
+    --primary-light: #14b8a6;
+    --tint:          #f0fdfa;
+    --text:          #0f172a;
+    --text-soft:     #334155;
+    --muted:         #64748b;
+    --border:        #e2e8f0;
+    --danger:        #dc2626;
+    --radius:        20px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body{
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 16px 72px;
+    background:
+      radial-gradient(900px 500px at 10% -10%, #ccfbf1 0%, transparent 60%),
+      radial-gradient(800px 500px at 110% 10%, #e0f2fe 0%, transparent 55%),
+      linear-gradient(170deg, #f8fafc 0%, #f1f5f9 100%);
+    background-attachment: fixed;
+  }
+
+  [hidden] { display: none !important; }
+
+  /* ============ TARJETA ============ */
+  .survey{
+    max-width: 840px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: var(--radius);
+    border: 1px solid rgba(15,118,110,.10);
+    box-shadow:
+      0 30px 60px -30px rgba(15,23,42,.28),
+      0 10px 24px -18px rgba(15,23,42,.15);
+    overflow: hidden;
+  }
+
+  /* ============ CABECERA ============ */
+  .survey-header{
+    position: relative;
+    overflow: hidden;
+    padding: 40px 44px 36px;
+    background: linear-gradient(135deg, #0b5f59 0%, #0f766e 45%, #14b8a6 100%);
+    color: #fff;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .survey-header::before{
+    content:""; position:absolute; width:280px; height:280px; border-radius:50%;
+    background: rgba(255,255,255,.08); top:-130px; right:-70px;
+  }
+  .survey-header::after{
+    content:""; position:absolute; width:180px; height:180px; border-radius:50%;
+    background: rgba(255,255,255,.06); bottom:-100px; left:-50px;
+  }
+  .survey-header > *{ position: relative; z-index: 1; }
+
+  .badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.25);
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .badge .pulse{
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #5eead4;
+    box-shadow: 0 0 0 0 rgba(94,234,212,.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%   { box-shadow: 0 0 0 0 rgba(94,234,212,.7); }
+    70%  { box-shadow: 0 0 0 9px rgba(94,234,212,0); }
+    100% { box-shadow: 0 0 0 0 rgba(94,234,212,0); }
+  }
+
+  .survey-header h1{
+    font-size: clamp(1.4rem, 3vw, 1.85rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+  }
+  .survey-header .area{
+    margin-top: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #a7f3d0;
+  }
+  .survey-header .intro{
+    margin-top: 16px;
+    max-width: 60ch;
+    font-size: .93rem;
+    color: rgba(255,255,255,.88);
+  }
+  .meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 9px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .79rem;
+    font-weight: 600;
+    color: #f0fdfa;
+  }
+  .chip svg{ width: 14px; height: 14px; flex: none; }
+
+  /* ============ BARRA DE PROGRESO ============ */
+  .progress-sticky{
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 44px;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-track{
+    flex: 1;
+    height: 7px;
+    background: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  #progressBar{
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #14b8a6, #0f766e);
+    transition: width .4s cubic-bezier(.4,0,.2,1);
+  }
+  .progress-count{
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ============ PREGUNTAS ============ */
+  .question{
+    padding: 28px 44px;
+    border-bottom: 1px solid var(--border);
+    transition: background .25s ease;
+  }
+  .question:last-of-type{ border-bottom: none; }
+
+  .q-head{
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .q-num{
+    flex: 0 0 auto;
+    width: 32px; height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--tint);
+    border: 1px solid rgba(15,118,110,.18);
+    color: var(--primary);
+    font-size: .85rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    transition: all .2s ease;
+  }
+  .q-text{
+    padding-top: 4px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: -.01em;
+  }
+
+  .options{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-left: 46px;
+  }
+  .options.single{ grid-template-columns: 1fr; }
+
+  .option{
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 15px;
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    background: #fff;
+    cursor: pointer;
+    font-size: .93rem;
+    font-weight: 500;
+    color: var(--text-soft);
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .12s ease;
+    position: relative;
+    user-select: none;
+  }
+  .option:hover{
+    border-color: #99f6e4;
+    background: #fafffe;
+  }
+  .option input{
+    position: absolute;
+    opacity: 0;
+    width: 0; height: 0;
+    pointer-events: none;
+  }
+
+  .dot{
+    flex: 0 0 auto;
+    width: 19px; height: 19px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    transition: border-color .18s ease;
+  }
+  .dot::after{
+    content: "";
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: scale(0);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .option input:checked ~ .dot{ border-color: var(--primary); }
+  .option input:checked ~ .dot::after{ transform: scale(1); }
+
+  .option:has(input:checked){
+    border-color: var(--primary);
+    background: var(--tint);
+    color: var(--primary-dark);
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba(15,118,110,.08);
+  }
+  .option:has(input:focus-visible){
+    outline: 2px solid var(--primary-light);
+    outline-offset: 2px;
+  }
+
+  /* Pregunta sin responder tras intentar enviar */
+  .question.invalid{
+    background: #fff5f5;
+    animation: shake .4s ease;
+  }
+  .question.invalid .q-num{
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: var(--danger);
+  }
+  .question.invalid .option{ border-color: #fecaca; }
+
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    25%    { transform: translateX(-5px); }
+    75%    { transform: translateX(5px); }
+  }
+
+  /* ============ PIE / BOTÓN ============ */
+  .survey-footer{
+    padding: 26px 44px 34px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .footer-note{
+    font-size: .82rem;
+    color: var(--muted);
+    max-width: 38ch;
+  }
+  .footer-note strong{ color: var(--text-soft); }
+
+  .btn{
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    font-size: .98rem;
+    letter-spacing: .01em;
+    color: #fff;
+    padding: 14px 34px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0f766e, #0d9488 60%, #14b8a6);
+    box-shadow: 0 12px 22px -10px rgba(13,148,136,.85);
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+  }
+  .btn:hover{
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 18px 28px -12px rgba(13,148,136,.9);
+  }
+  .btn:active{ transform: translateY(0); }
+  .btn:focus-visible{ outline: 3px solid #99f6e4; outline-offset: 3px; }
+
+  .btn-ghost{
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    box-shadow: none;
+  }
+  .btn-ghost:hover{
+    background: var(--tint);
+    box-shadow: none;
+  }
+
+  .error-banner{
+    width: 100%;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 11px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: .87rem;
+    font-weight: 600;
+  }
+  .error-banner.show{ display: flex; }
+  .error-banner svg{ width: 17px; height: 17px; flex: none; }
+
+  /* ============ PANTALLA DE AGRADECIMIENTO ============ */
+  .thankyou{
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 70px 44px;
+    text-align: center;
+    background: #fff;
+    border-radius: var(--radius);
+    border: 1px solid rgba(15,118,110,.10);
+    box-shadow: 0 30px 60px -30px rgba(15,23,42,.28);
+    animation: fadeUp .5s ease both;
+  }
+  @keyframes fadeUp{
+    from{ opacity: 0; transform: translateY(14px); }
+    to  { opacity: 1; transform: translateY(0); }
+  }
+  .thankyou .check{
+    width: 82px; height: 82px;
+    margin: 0 auto 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, #0f766e);
+    box-shadow: 0 18px 32px -14px rgba(13,148,136,.9);
+  }
+  .thankyou .check svg{ width: 40px; height: 40px; }
+  .thankyou h2{
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+  .thankyou p{
+    color: var(--muted);
+    font-size: .95rem;
+    max-width: 46ch;
+    margin: 0 auto 28px;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 640px){
+    body{ padding: 20px 10px 48px; }
+    .survey-header{ padding: 30px 22px 28px; }
+    .progress-sticky{ padding: 10px 22px; }
+    .question{ padding: 24px 22px; }
+    .survey-footer{ padding: 22px 22px 28px; flex-direction: column; align-items: stretch; }
+    .btn{ width: 100%; }
+    .options{ grid-template-columns: 1fr; padding-left: 0; }
+    .q-num{ width: 28px; height: 28px; font-size: .78rem; }
+    .q-text{ font-size: .97rem; }
+    .thankyou{ padding: 50px 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>Diagnóstico de Rotación</h1>
-    <div class="sub">Baños y Peluquería · ICM</div>
+
+<!-- ============================================================
+     ENCUESTA
+     ============================================================ -->
+<form class="survey" id="surveyForm" novalidate>
+
+  <!-- ---------- CABECERA ---------- -->
+  <header class="survey-header">
+    <span class="badge"><span class="pulse"></span> Encuesta de clima laboral</span>
+    <h1>Encuesta de Satisfacción Laboral</h1>
+    <p class="area">Área de Baños y Peluquería · ICM</p>
+    <p class="intro">
+      Tu opinión es confidencial y nos ayuda a mejorar las condiciones de trabajo.
+      Responde con sinceridad: no hay respuestas correctas ni incorrectas.
+    </p>
+    <div class="meta">
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        10 preguntas
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Tiempo estimado: 2 min
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Respuestas anónimas
+      </span>
+    </div>
   </header>
 
-  <div class="intro">
-    El área de Talento Humano está realizando esta encuesta reglamentaria para
-    identificar oportunidades de mejora. <strong>Sus respuestas son 100% anónimas.</strong>
-    Tiempo estimado: 3 minutos.
+  <!-- ---------- PROGRESO ---------- -->
+  <div class="progress-sticky">
+    <div class="progress-track" role="progressbar" aria-label="Progreso de la encuesta" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="progressTrack">
+      <span id="progressBar"></span>
+    </div>
+    <span class="progress-count" id="progressCount">0 / 10</span>
   </div>
 
-  <form id="form"></form>
-
-  <div id="gracias">
-    <h2>✅ ¡Gracias por tu respuesta!</h2>
-    <p>Tu opinión ayuda a mejorar el ambiente laboral en ICM.<br>Puedes cerrar esta ventana.</p>
+  <!-- ---------- P1 ---------- -->
+  <div class="question" data-q="1">
+    <div class="q-head">
+      <span class="q-num">01</span>
+      <p class="q-text">En general, ¿qué tan satisfecho(a) se siente trabajando en el área de baños y peluquería de ICM?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p1" value="Muy satisfecho(a)" required><span class="dot"></span><span>Muy satisfecho(a)</span></label>
+      <label class="option"><input type="radio" name="p1" value="Satisfecho(a)"><span class="dot"></span><span>Satisfecho(a)</span></label>
+      <label class="option"><input type="radio" name="p1" value="Poco satisfecho(a)"><span class="dot"></span><span>Poco satisfecho(a)</span></label>
+      <label class="option"><input type="radio" name="p1" value="Nada satisfecho(a)"><span class="dot"></span><span>Nada satisfecho(a)</span></label>
+    </div>
   </div>
-</div>
 
-<script src="config.js"></script>
+  <!-- ---------- P2 ---------- -->
+  <div class="question" data-q="2">
+    <div class="q-head">
+      <span class="q-num">02</span>
+      <p class="q-text">¿Cómo califica el ambiente laboral y la relación con sus compañeros de trabajo?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p2" value="Excelente" required><span class="dot"></span><span>Excelente</span></label>
+      <label class="option"><input type="radio" name="p2" value="Bueno"><span class="dot"></span><span>Bueno</span></label>
+      <label class="option"><input type="radio" name="p2" value="Regular"><span class="dot"></span><span>Regular</span></label>
+      <label class="option"><input type="radio" name="p2" value="Malo"><span class="dot"></span><span>Malo</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P3 ---------- -->
+  <div class="question" data-q="3">
+    <div class="q-head">
+      <span class="q-num">03</span>
+      <p class="q-text">¿Considera que su salario actual está acorde con las funciones y el esfuerzo físico que realiza?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p3" value="Totalmente de acuerdo" required><span class="dot"></span><span>Totalmente de acuerdo</span></label>
+      <label class="option"><input type="radio" name="p3" value="De acuerdo"><span class="dot"></span><span>De acuerdo</span></label>
+      <label class="option"><input type="radio" name="p3" value="En desacuerdo"><span class="dot"></span><span>En desacuerdo</span></label>
+      <label class="option"><input type="radio" name="p3" value="Totalmente en desacuerdo"><span class="dot"></span><span>Totalmente en desacuerdo</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P4 ---------- -->
+  <div class="question" data-q="4">
+    <div class="q-head">
+      <span class="q-num">04</span>
+      <p class="q-text">¿Siente que sus pagos y beneficios se realizan de manera puntual y clara?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p4" value="Siempre" required><span class="dot"></span><span>Siempre</span></label>
+      <label class="option"><input type="radio" name="p4" value="Casi siempre"><span class="dot"></span><span>Casi siempre</span></label>
+      <label class="option"><input type="radio" name="p4" value="Casi nunca"><span class="dot"></span><span>Casi nunca</span></label>
+      <label class="option"><input type="radio" name="p4" value="Nunca"><span class="dot"></span><span>Nunca</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P5 ---------- -->
+  <div class="question" data-q="5">
+    <div class="q-head">
+      <span class="q-num">05</span>
+      <p class="q-text">¿Cuenta con las herramientas, insumos y espacios adecuados para realizar su labor de forma segura?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p5" value="Siempre" required><span class="dot"></span><span>Siempre</span></label>
+      <label class="option"><input type="radio" name="p5" value="A veces"><span class="dot"></span><span>A veces</span></label>
+      <label class="option"><input type="radio" name="p5" value="Casi nunca"><span class="dot"></span><span>Casi nunca</span></label>
+      <label class="option"><input type="radio" name="p5" value="Nunca"><span class="dot"></span><span>Nunca</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P6 ---------- -->
+  <div class="question" data-q="6">
+    <div class="q-head">
+      <span class="q-num">06</span>
+      <p class="q-text">¿Considera que su horario y carga laboral le permiten tener un equilibrio con su vida personal?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p6" value="Sí, totalmente" required><span class="dot"></span><span>Sí, totalmente</span></label>
+      <label class="option"><input type="radio" name="p6" value="A veces"><span class="dot"></span><span>A veces</span></label>
+      <label class="option"><input type="radio" name="p6" value="No, casi nunca"><span class="dot"></span><span>No, casi nunca</span></label>
+      <label class="option"><input type="radio" name="p6" value="No, definitivamente no"><span class="dot"></span><span>No, definitivamente no</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P7 ---------- -->
+  <div class="question" data-q="7">
+    <div class="q-head">
+      <span class="q-num">07</span>
+      <p class="q-text">¿Cómo califica la comunicación y el apoyo que recibe por parte de su jefe o superior inmediato?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p7" value="Excelente" required><span class="dot"></span><span>Excelente</span></label>
+      <label class="option"><input type="radio" name="p7" value="Bueno"><span class="dot"></span><span>Bueno</span></label>
+      <label class="option"><input type="radio" name="p7" value="Regular"><span class="dot"></span><span>Regular</span></label>
+      <label class="option"><input type="radio" name="p7" value="Deficiente"><span class="dot"></span><span>Deficiente</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P8 ---------- -->
+  <div class="question" data-q="8">
+    <div class="q-head">
+      <span class="q-num">08</span>
+      <p class="q-text">Cuando comete un error o tiene una dificultad en el trabajo, ¿siente el respaldo de sus superiores?</p>
+    </div>
+    <div class="options">
+      <label class="option"><input type="radio" name="p8" value="Siempre" required><span class="dot"></span><span>Siempre</span></label>
+      <label class="option"><input type="radio" name="p8" value="A veces"><span class="dot"></span><span>A veces</span></label>
+      <label class="option"><input type="radio" name="p8" value="Rara vez"><span class="dot"></span><span>Rara vez</span></label>
+      <label class="option"><input type="radio" name="p8" value="Nunca"><span class="dot"></span><span>Nunca</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P9 ---------- -->
+  <div class="question" data-q="9">
+    <div class="q-head">
+      <span class="q-num">09</span>
+      <p class="q-text">En los últimos 3 meses, ¿ha considerado la idea de renunciar a su trabajo en ICM?</p>
+    </div>
+    <div class="options single">
+      <label class="option"><input type="radio" name="p9" value="No, nunca" required><span class="dot"></span><span>No, nunca</span></label>
+      <label class="option"><input type="radio" name="p9" value="Lo he pensado ocasionalmente"><span class="dot"></span><span>Lo he pensado ocasionalmente</span></label>
+      <label class="option"><input type="radio" name="p9" value="Lo he pensado seriamente"><span class="dot"></span><span>Lo he pensado seriamente</span></label>
+      <label class="option"><input type="radio" name="p9" value="Sí, ya estoy buscando otro empleo"><span class="dot"></span><span>Sí, ya estoy buscando otro empleo</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- P10 ---------- -->
+  <div class="question" data-q="10">
+    <div class="q-head">
+      <span class="q-num">10</span>
+      <p class="q-text">Si en este momento tuviera que tomar la decisión de renunciar, ¿cuál sería el principal motivo?</p>
+    </div>
+    <div class="options single">
+      <label class="option"><input type="radio" name="p10" value="Bajos ingresos (sueldo)" required><span class="dot"></span><span>Bajos ingresos (sueldo)</span></label>
+      <label class="option"><input type="radio" name="p10" value="Mal ambiente laboral o problemas con compañeros"><span class="dot"></span><span>Mal ambiente laboral o problemas con compañeros</span></label>
+      <label class="option"><input type="radio" name="p10" value="Malas condiciones físicas o de horario"><span class="dot"></span><span>Malas condiciones físicas o de horario</span></label>
+      <label class="option"><input type="radio" name="p10" value="Problemas o falta de respeto con los superiores"><span class="dot"></span><span>Problemas o falta de respeto con los superiores</span></label>
+      <label class="option"><input type="radio" name="p10" value="Motivos personales / Otra oferta laboral"><span class="dot"></span><span>Motivos personales / Otra oferta laboral</span></label>
+    </div>
+  </div>
+
+  <!-- ---------- PIE ---------- -->
+  <div class="survey-footer">
+    <div class="error-banner" id="errorBanner" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+      </svg>
+      <span>Faltan preguntas por responder. Revisa las marcadas en rojo.</span>
+    </div>
+    <p class="footer-note">
+      <strong>Todas las preguntas son obligatorias.</strong><br>
+      Tus respuestas son anónimas y se usarán únicamente para mejorar las condiciones laborales.
+    </p>
+    <button type="submit" class="btn">Enviar encuesta</button>
+  </div>
+
+</form>
+
+<!-- ============================================================
+     PANTALLA DE AGRADECIMIENTO
+     ============================================================ -->
+<section class="thankyou" id="thankyou" hidden>
+  <div class="check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  </div>
+  <h2>¡Gracias por tu respuesta!</h2>
+  <p>
+    Hemos recibido tu encuesta correctamente. Tu opinión es fundamental para
+    seguir mejorando el ambiente y las condiciones de trabajo en ICM.
+  </p>
+  <button type="button" class="btn btn-ghost" id="restartBtn">Responder de nuevo</button>
+</section>
+
 <script>
-const PREGUNTAS = [
-  { bloque: 'Satisfacción General y Clima', preguntas: [
-    { q: '1. En general, ¿qué tan satisfecho(a) se siente trabajando en el área de baños y peluquería de ICM?',
-      o: ['Muy satisfecho(a)','Satisfecho(a)','Poco satisfecho(a)','Nada satisfecho(a)'] },
-    { q: '2. ¿Cómo califica el ambiente laboral y la relación con sus compañeros de trabajo?',
-      o: ['Excelente','Bueno','Regular','Malo'] }
-  ]},
-  { bloque: 'Remuneración', preguntas: [
-    { q: '3. ¿Considera que su salario actual está acorde con las funciones y el esfuerzo físico que realiza?',
-      o: ['Totalmente de acuerdo','De acuerdo','En desacuerdo','Totalmente en desacuerdo'] },
-    { q: '4. ¿Siente que sus pagos y beneficios se realizan de manera puntual y clara?',
-      o: ['Siempre','Casi siempre','Casi nunca','Nunca'] }
-  ]},
-  { bloque: 'Condiciones de Trabajo', preguntas: [
-    { q: '5. ¿Cuenta con las herramientas, insumos y espacios adecuados para realizar su labor de forma segura?',
-      o: ['Siempre','A veces','Casi nunca','Nunca'] },
-    { q: '6. ¿Considera que su horario y carga laboral le permiten tener un equilibrio con su vida personal?',
-      o: ['Sí, totalmente','A veces','No, casi nunca','No, definitivamente no'] }
-  ]},
-  { bloque: 'Relación con Superiores', preguntas: [
-    { q: '7. ¿Cómo califica la comunicación y el apoyo que recibe por parte de su jefe o superior inmediato?',
-      o: ['Excelente','Bueno','Regular','Deficiente'] },
-    { q: '8. Cuando comete un error o tiene una dificultad en el trabajo, ¿siente el respaldo de sus superiores?',
-      o: ['Siempre','A veces','Rara vez','Nunca'] }
-  ]},
-  { bloque: 'Intención de Deserción', preguntas: [
-    { q: '9. En los últimos 3 meses, ¿ha considerado la idea de renunciar a su trabajo en ICM?',
-      o: ['No, nunca','Lo he pensado ocasionalmente','Lo he pensado seriamente','Sí, ya estoy buscando otro empleo'] },
-    { q: '10. Si en este momento tuviera que tomar la decisión de renunciar, ¿cuál sería el principal motivo?',
-      o: ['Bajos ingresos (sueldo)','Mal ambiente laboral o problemas con compañeros','Malas condiciones físicas o de horario','Problemas o falta de respeto con los superiores','Motivos personales / Otra oferta laboral'] }
-  ]}
-];
+(function () {
+  "use strict";
 
-// Renderizar formulario
-const form = document.getElementById('form');
-let idx = 1;
-PREGUNTAS.forEach(bloque => {
-  const div = document.createElement('div');
-  div.className = 'bloque';
-  let html = '<h2>' + bloque.bloque + '</h2>';
-  bloque.preguntas.forEach(p => {
-    const n = idx++;
-    html += '<div class="pregunta"><label class="q">' + p.q + '</label><div class="opciones">';
-    p.o.forEach(op => {
-      html += '<label class="opcion"><input type="radio" name="p' + n + '" value="' +
-              op.replace(/"/g,'&quot;') + '" required><span>' + op + '</span></label>';
+  const form        = document.getElementById('surveyForm');
+  const questions   = Array.from(document.querySelectorAll('.question'));
+  const progressBar = document.getElementById('progressBar');
+  const progressCount = document.getElementById('progressCount');
+  const progressTrack = document.getElementById('progressTrack');
+  const errorBanner = document.getElementById('errorBanner');
+  const thankyou    = document.getElementById('thankyou');
+  const restartBtn  = document.getElementById('restartBtn');
+
+  const TOTAL = questions.length;
+
+  /* ---------- Progreso ---------- */
+  function updateProgress() {
+    let answered = 0;
+
+    questions.forEach(function (q) {
+      if (q.querySelector('input[type="radio"]:checked')) {
+        answered++;
+        q.classList.remove('invalid');
+      }
     });
-    html += '</div></div>';
+
+    const pct = (answered / TOTAL) * 100;
+    progressBar.style.width = pct + '%';
+    progressCount.textContent = answered + ' / ' + TOTAL;
+    progressTrack.setAttribute('aria-valuenow', answered);
+
+    if (answered === TOTAL) {
+      errorBanner.classList.remove('show');
+    }
+  }
+
+  form.addEventListener('change', updateProgress);
+  updateProgress();
+
+  /* ---------- Envío ---------- */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    let firstInvalid = null;
+    const answers = {};
+
+    questions.forEach(function (q) {
+      const selected = q.querySelector('input[type="radio"]:checked');
+
+      if (!selected) {
+        q.classList.add('invalid');
+        if (!firstInvalid) firstInvalid = q;
+      } else {
+        q.classList.remove('invalid');
+        answers['P' + q.dataset.q] = selected.value;
+      }
+    });
+
+    if (firstInvalid) {
+      errorBanner.classList.add('show');
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    /* ---- Aquí conectarías con tu backend / Google Sheets / API ---- */
+    console.log('Respuestas de la encuesta ICM:', answers);
+
+    /* Mostrar agradecimiento */
+    form.hidden = true;
+    thankyou.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
-  div.innerHTML = html;
-  form.appendChild(div);
-});
 
-const btn = document.createElement('button');
-btn.type = 'submit';
-btn.textContent = 'Enviar respuestas';
-form.appendChild(btn);
-
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  const respuestas = [];
-  for (let i = 1; i <= 10; i++) {
-    const checked = form.querySelector('input[name="p' + i + '"]:checked');
-    if (!checked) { alert('Por favor responde la pregunta ' + i); return; }
-    respuestas.push(checked.value);
-  }
-  btn.disabled = true;
-  btn.textContent = 'Enviando…';
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ respuestas })
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Error del servidor');
-    form.style.display = 'none';
-    document.getElementById('gracias').style.display = 'block';
-  } catch (err) {
-    alert('No se pudo enviar: ' + err.message);
-    btn.disabled = false;
-    btn.textContent = 'Enviar respuestas';
-  }
-});
+  /* ---------- Reiniciar ---------- */
+  restartBtn.addEventListener('click', function () {
+    form.reset();
+    questions.forEach(function (q) { q.classList.remove('invalid'); });
+    errorBanner.classList.remove('show');
+    thankyou.hidden = true;
+    form.hidden = false;
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
 </script>
+
 </body>
 </html>
